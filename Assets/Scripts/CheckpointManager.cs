@@ -5,15 +5,22 @@ using System.Collections;
 public class CheckpointManager : MonoBehaviour
 {
     public Transform player;
+
+    [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip mario;
     public AudioClip mariachi;
+    public AudioClip checkpointSound;
 
+    [Header("Visual FX")]
+    public GameObject checkpointFX;
+
+    [Header("API")]
     public string apiMusicUrl = "https://api.agify.io/?name=mario";
 
     private void Start()
     {
-        // Restaurar la posición si existe
+        // Restaurar la posición del jugador
         if (PlayerPrefs.HasKey("checkpoint_x"))
         {
             float x = PlayerPrefs.GetFloat("checkpoint_x");
@@ -36,6 +43,16 @@ public class CheckpointManager : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             SaveCheckpoint(other.transform.position);
+
+            // 🔊 Sonido del checkpoint
+            if (checkpointSound != null)
+                AudioSource.PlayClipAtPoint(checkpointSound, transform.position);
+
+            // ✨ FX visual
+            if (checkpointFX != null)
+                Instantiate(checkpointFX, transform.position, Quaternion.identity);
+
+            // 🎵 Cambiar canción con la API
             StartCoroutine(GetSongFromAPI());
         }
     }
@@ -56,7 +73,7 @@ public class CheckpointManager : MonoBehaviour
 
         if (request.result == UnityWebRequest.Result.Success)
         {
-            // Alternar entre canciones cada vez que se llama
+            // Alternar entre canciones
             string lastSong = PlayerPrefs.GetString("last_song", "");
             string newSong = (lastSong == "mario") ? "mariachi" : "mario";
 
